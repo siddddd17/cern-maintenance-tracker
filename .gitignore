@@ -1,0 +1,7 @@
+# Ignore IDE/editor folders at repo root
+.idea/
+.vscode/
+
+# macOS system files
+.DS_Store
+
