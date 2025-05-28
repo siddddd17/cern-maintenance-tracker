@@ -10,6 +10,6 @@ public interface EquipmentServiceInterface {
     Optional<Equipment> getEquipmentById(Long id);
     Equipment createEquipment(Equipment equipment);
     Equipment updateEquipment(Long id, Equipment updatedEquipment);
-    void deleteEquipment(Long id);
+    Boolean deleteEquipment(Long id);
 }
 

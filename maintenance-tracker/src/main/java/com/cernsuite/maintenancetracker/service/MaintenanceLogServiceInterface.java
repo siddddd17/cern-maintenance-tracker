@@ -10,5 +10,5 @@ public interface MaintenanceLogServiceInterface {
     Optional<MaintenanceLog> getLogById(Long id);
     MaintenanceLog createLog(MaintenanceLog log);
     MaintenanceLog updateLog(Long id, MaintenanceLog updatedLog);
-    void deleteLog(Long id);
+    Boolean deleteLog(Long id);
 }

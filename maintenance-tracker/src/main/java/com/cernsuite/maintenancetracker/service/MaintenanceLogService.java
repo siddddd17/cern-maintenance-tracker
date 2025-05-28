@@ -40,7 +40,12 @@ public class MaintenanceLogService implements MaintenanceLogServiceInterface{
                 .orElseThrow(() -> new RuntimeException("Maintenance log not found"));
     }
 
-    public void deleteLog(Long id) {
-        maintenanceLogRepository.deleteById(id);
+    public Boolean deleteLog(Long id) {
+        if (maintenanceLogRepository.existsById(id)) {
+            maintenanceLogRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
+
 }

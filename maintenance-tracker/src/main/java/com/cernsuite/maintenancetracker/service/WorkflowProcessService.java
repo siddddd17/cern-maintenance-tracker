@@ -39,7 +39,12 @@ public class WorkflowProcessService implements WorkflowProcessServiceInterface{
                 .orElseThrow(() -> new RuntimeException("Workflow process not found"));
     }
 
-    public void deleteProcess(Long id) {
-        workflowProcessRepository.deleteById(id);
+    public Boolean deleteProcess(Long id) {
+        if (workflowProcessRepository.existsById(id)) {
+            workflowProcessRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
+
 }

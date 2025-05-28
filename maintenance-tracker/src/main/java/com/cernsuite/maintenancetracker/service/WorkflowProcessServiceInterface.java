@@ -10,5 +10,5 @@ public interface WorkflowProcessServiceInterface {
     Optional<WorkflowProcess> getProcessById(Long id);
     WorkflowProcess createProcess(WorkflowProcess process);
     WorkflowProcess updateProcess(Long id, WorkflowProcess updatedProcess);
-    void deleteProcess(Long id);
+    Boolean deleteProcess(Long id);
 }

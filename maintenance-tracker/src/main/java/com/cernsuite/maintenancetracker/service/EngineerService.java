@@ -26,18 +26,22 @@ public class EngineerService {
         return engineerRepository.save(engineer);
     }
 
-    public Engineer updateEngineer(Long id, Engineer updatedEngineer) {
+    public Optional<Engineer> updateEngineer(Long id, Engineer updatedEngineer) {
         return engineerRepository.findById(id)
                 .map(existing -> {
                     existing.setName(updatedEngineer.getName());
                     existing.setEmail(updatedEngineer.getEmail());
                     existing.setRole(updatedEngineer.getRole());
                     return engineerRepository.save(existing);
-                })
-                .orElseThrow(() -> new RuntimeException("Engineer not found"));
+                });
     }
 
-    public void deleteEngineer(Long id) {
-        engineerRepository.deleteById(id);
+    public boolean deleteEngineer(Long id) {
+        if (engineerRepository.existsById(id)) {
+            engineerRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
+
 }

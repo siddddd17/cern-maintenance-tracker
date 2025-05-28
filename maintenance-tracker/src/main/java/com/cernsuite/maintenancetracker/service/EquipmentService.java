@@ -40,8 +40,13 @@ public class EquipmentService implements EquipmentServiceInterface{
                 .orElseThrow(() -> new RuntimeException("Equipment not found"));
     }
 
-    public void deleteEquipment(Long id) {
-        equipmentRepository.deleteById(id);
+    public Boolean deleteEquipment(Long id) {
+        if (equipmentRepository.existsById(id)) {
+            equipmentRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
+
 }
 
