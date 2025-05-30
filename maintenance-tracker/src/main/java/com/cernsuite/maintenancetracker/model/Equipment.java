@@ -20,9 +20,9 @@ public class Equipment {
     private String name;
     private String location;
     private String type;
-    private String serialNumber;
+    private String serialNumber; //todo : should this be unique feild?
     private LocalDate installationDate;
-    private String status; // e.g., ACTIVE, UNDER_MAINTENANCE, RETIRED
+    private String status; // e.g., ACTIVE, UNDER_MAINTENANCE, RETIRED //todo : Create enums for this
 
     @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL)
     private List<MaintenanceLog> maintenanceLogs;
