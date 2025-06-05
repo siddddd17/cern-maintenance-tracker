@@ -1,8 +1,11 @@
 package com.cernsuite.maintenancetracker.controller;
 
-import com.cernsuite.maintenancetracker.model.MaintenanceLog;
+import com.cernsuite.maintenancetracker.dto.MaintenanceLogDTO;
 import com.cernsuite.maintenancetracker.service.MaintenanceLogService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,43 +13,48 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/maintenance-logs")
+@RequiredArgsConstructor
 public class MaintenanceLogController {
 
-    @Autowired
-    private MaintenanceLogService maintenanceLogService;
+    private final MaintenanceLogService maintenanceLogService;
 
-    @GetMapping
-    public List<MaintenanceLog> getAllLogs() {
-        return maintenanceLogService.getAllLogs();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<MaintenanceLog> getLogById(@PathVariable Long id) {
-        return maintenanceLogService.getLogById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
+    @Operation(summary = "Create new MaintenanceLog")
     @PostMapping
-    public MaintenanceLog createLog(@RequestBody MaintenanceLog log) {
-        return maintenanceLogService.createLog(log);
+    public ResponseEntity<MaintenanceLogDTO> create(@Valid @RequestBody MaintenanceLogDTO dto) {
+        return ResponseEntity.ok(maintenanceLogService.create(dto));
     }
 
+    @Operation(summary = "Update existing MaintenanceLog")
     @PutMapping("/{id}")
-    public ResponseEntity<MaintenanceLog> updateLog(@PathVariable Long id, @RequestBody MaintenanceLog updatedLog) {
-        try {
-            MaintenanceLog log = maintenanceLogService.updateLog(id, updatedLog);
-            return ResponseEntity.ok(log);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<MaintenanceLogDTO> update(@PathVariable Long id, @Valid @RequestBody MaintenanceLogDTO dto) {
+        return ResponseEntity.ok(maintenanceLogService.update(id, dto));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLog(@PathVariable Long id) {
-        if (maintenanceLogService.deleteLog(id)) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+    @Operation(summary = "Get all MaintenanceLogs with pagination")
+    @GetMapping
+    public ResponseEntity<Page<MaintenanceLogDTO>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(maintenanceLogService.getAll(pageable));
     }
+
+    @Operation(summary = "Get MaintenanceLog by ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<MaintenanceLogDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(maintenanceLogService.getById(id));
+    }
+
+    @Operation(summary = "Delete MaintenanceLog by ID")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        maintenanceLogService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/{id}/maintenance-logs")
+    public ResponseEntity<List<MaintenanceLogDTO>> getLogsByEngineer(@PathVariable Long id) {
+        List<MaintenanceLogDTO> logs = maintenanceLogService.findByEngineerId(id);
+        return ResponseEntity.ok(logs);
+    }
+
 }

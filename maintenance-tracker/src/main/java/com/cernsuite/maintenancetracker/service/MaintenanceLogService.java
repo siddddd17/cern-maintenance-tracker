@@ -1,86 +1,79 @@
 package com.cernsuite.maintenancetracker.service;
 
-import com.cernsuite.maintenancetracker.model.Engineer;
-import com.cernsuite.maintenancetracker.model.Equipment;
-import com.cernsuite.maintenancetracker.model.MaintenanceLog;
-import com.cernsuite.maintenancetracker.model.WorkflowProcess;
-import com.cernsuite.maintenancetracker.repository.EngineerRepository;
-import com.cernsuite.maintenancetracker.repository.EquipmentRepository;
-import com.cernsuite.maintenancetracker.repository.MaintenanceLogRepository;
-import com.cernsuite.maintenancetracker.repository.WorkflowProcessRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.cernsuite.maintenancetracker.dto.MaintenanceLogDTO;
+import com.cernsuite.maintenancetracker.mapper.MaintenanceLogMapper;
+import com.cernsuite.maintenancetracker.model.*;
+import com.cernsuite.maintenancetracker.repository.*;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-public class MaintenanceLogService implements MaintenanceLogServiceInterface{
+@RequiredArgsConstructor
+public class MaintenanceLogService {
 
-    @Autowired
-    private MaintenanceLogRepository maintenanceLogRepository;
+    private final MaintenanceLogRepository maintenanceLogRepository;
+    private final MaintenanceLogMapper maintenanceLogMapper;
+    private final EquipmentRepository equipmentRepository;
+    private final EngineerRepository engineerRepository;
+    private final WorkflowProcessRepository workflowProcessRepository;
 
-    @Autowired
-    private EngineerRepository engineerRepository;
-
-    @Autowired
-    private EquipmentRepository equipmentRepository;
-
-    @Autowired
-    private WorkflowProcessRepository workflowProcessRepository;
-
-    public List<MaintenanceLog> getAllLogs() {
-        return maintenanceLogRepository.findAll();
-    }
-
-    public Optional<MaintenanceLog> getLogById(Long id) {
-        return maintenanceLogRepository.findById(id);
-    }
-
-    public MaintenanceLog createLog(MaintenanceLog log) {
-        // Fetch existing Equipment and Engineer entities from DB
-        Equipment equipment = equipmentRepository.findById(log.getEquipment().getId())
-                .orElseThrow(() -> new RuntimeException("Equipment not found"));
-
-        Engineer engineer = engineerRepository.findById(log.getEngineer().getId())
-                .orElseThrow(() -> new RuntimeException("Engineer not found"));
-
-        log.setEquipment(equipment);
-        log.setEngineer(engineer);
-
-        equipment.getMaintenanceLogs().add(log);
-        engineer.getMaintenanceLogs().add(log);
-
-        if (log.getWorkflowProcess() != null && log.getWorkflowProcess().getId() != null) {
-            WorkflowProcess process = workflowProcessRepository.findById(log.getWorkflowProcess().getId())
-                    .orElseThrow(() -> new RuntimeException("Workflow process not found"));
-            log.setWorkflowProcess(process);
+    public MaintenanceLogDTO create(MaintenanceLogDTO dto) {
+        MaintenanceLog log = maintenanceLogMapper.toEntity(dto);
+        log.setEquipment(equipmentRepository.findById(dto.getEquipmentId())
+                .orElseThrow(() -> new EntityNotFoundException("Equipment not found")));
+        log.setEngineer(engineerRepository.findById(dto.getEngineerId())
+                .orElseThrow(() -> new EntityNotFoundException("Engineer not found")));
+        if (dto.getWorkflowProcessId() != null) {
+            log.setWorkflowProcess(workflowProcessRepository.findById(dto.getWorkflowProcessId())
+                    .orElseThrow(() -> new EntityNotFoundException("WorkflowProcess not found")));
         }
-
-        return maintenanceLogRepository.save(log);
+        return maintenanceLogMapper.toDTO(maintenanceLogRepository.save(log));
     }
 
-
-    public MaintenanceLog updateLog(Long id, MaintenanceLog updatedLog) {
-        return maintenanceLogRepository.findById(id)
-                .map(existing -> {
-                    existing.setDate(updatedLog.getDate());
-                    existing.setDescription(updatedLog.getDescription());
-                    existing.setStatus(updatedLog.getStatus());
-                    existing.setEquipment(updatedLog.getEquipment());
-                    existing.setEngineer(updatedLog.getEngineer());
-                    existing.setWorkflowProcess(updatedLog.getWorkflowProcess());
-                    return maintenanceLogRepository.save(existing);
-                })
-                .orElseThrow(() -> new RuntimeException("Maintenance log not found"));
-    }
-
-    public Boolean deleteLog(Long id) {
-        if (maintenanceLogRepository.existsById(id)) {
-            maintenanceLogRepository.deleteById(id);
-            return true;
+    public MaintenanceLogDTO update(Long id, MaintenanceLogDTO dto) {
+        MaintenanceLog existing = maintenanceLogRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("MaintenanceLog not found"));
+        maintenanceLogMapper.updateEntityFromDto(dto, existing);
+        existing.setEquipment(equipmentRepository.findById(dto.getEquipmentId())
+                .orElseThrow(() -> new EntityNotFoundException("Equipment not found")));
+        existing.setEngineer(engineerRepository.findById(dto.getEngineerId())
+                .orElseThrow(() -> new EntityNotFoundException("Engineer not found")));
+        if (dto.getWorkflowProcessId() != null) {
+            existing.setWorkflowProcess(workflowProcessRepository.findById(dto.getWorkflowProcessId())
+                    .orElseThrow(() -> new EntityNotFoundException("WorkflowProcess not found")));
+        } else {
+            existing.setWorkflowProcess(null);
         }
-        return false;
+        return maintenanceLogMapper.toDTO(maintenanceLogRepository.save(existing));
+    }
+
+    public Page<MaintenanceLogDTO> getAll(Pageable pageable) {
+        return maintenanceLogRepository.findAll(pageable).map(maintenanceLogMapper::toDTO);
+    }
+
+    public MaintenanceLogDTO getById(Long id) {
+        MaintenanceLog log = maintenanceLogRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("MaintenanceLog not found"));
+        return maintenanceLogMapper.toDTO(log);
+    }
+
+    public void delete(Long id) {
+        if (!maintenanceLogRepository.existsById(id)) {
+            throw new EntityNotFoundException("MaintenanceLog not found");
+        }
+        maintenanceLogRepository.deleteById(id);
+    }
+
+    public List<MaintenanceLogDTO> findByEngineerId(Long engineerId) {
+        List<MaintenanceLog> logs = maintenanceLogRepository.findByEngineerId(engineerId);
+        return logs.stream()
+                .map(maintenanceLogMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
 }

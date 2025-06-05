@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EquipmentServiceInterface {
-    List<Equipment> getAllEquipment();
-    Optional<Equipment> getEquipmentById(Long id);
-    Equipment createEquipment(Equipment equipment);
-    Equipment updateEquipment(Long id, Equipment updatedEquipment);
+    Equipment create(Equipment equipment);
+    Optional<Equipment> getById(Long id);
+    List<Equipment> getAll();
+    Equipment update(Long id, Equipment equipment);
     Boolean deleteEquipment(Long id);
 }
 

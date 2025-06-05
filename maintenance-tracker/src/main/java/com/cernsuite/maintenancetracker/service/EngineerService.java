@@ -1,47 +1,47 @@
 package com.cernsuite.maintenancetracker.service;
 
+import com.cernsuite.maintenancetracker.dto.EngineerDTO;
+import com.cernsuite.maintenancetracker.mapper.EngineerMapper;
 import com.cernsuite.maintenancetracker.model.Engineer;
 import com.cernsuite.maintenancetracker.repository.EngineerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-
 @Service
+@RequiredArgsConstructor
 public class EngineerService {
 
-    @Autowired
-    private EngineerRepository engineerRepository;
+    private final EngineerRepository engineerRepository;
+    private final EngineerMapper engineerMapper;
 
-    public List<Engineer> getAllEngineers() {
-        return engineerRepository.findAll();
+    public EngineerDTO create(EngineerDTO dto) {
+        Engineer engineer = engineerMapper.toEntity(dto);
+        return engineerMapper.toDTO(engineerRepository.save(engineer));
     }
 
-    public Optional<Engineer> getEngineerById(Long id) {
-        return engineerRepository.findById(id);
+    public EngineerDTO update(Long id, EngineerDTO dto) {
+        Engineer existing = engineerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Engineer not found"));
+        engineerMapper.updateEntityFromDto(dto, existing);
+        return engineerMapper.toDTO(engineerRepository.save(existing));
     }
 
-    public Engineer createEngineer(Engineer engineer) {
-        return engineerRepository.save(engineer);
+    public Page<EngineerDTO> getAll(Pageable pageable) {
+        return engineerRepository.findAll(pageable).map(engineerMapper::toDTO);
     }
 
-    public Optional<Engineer> updateEngineer(Long id, Engineer updatedEngineer) {
-        return engineerRepository.findById(id)
-                .map(existing -> {
-                    existing.setName(updatedEngineer.getName());
-                    existing.setEmail(updatedEngineer.getEmail());
-                    existing.setRole(updatedEngineer.getRole());
-                    return engineerRepository.save(existing);
-                });
+    public EngineerDTO getById(Long id) {
+        Engineer engineer = engineerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Engineer not found"));
+        return engineerMapper.toDTO(engineer);
     }
 
-    public boolean deleteEngineer(Long id) {
-        if (engineerRepository.existsById(id)) {
-            engineerRepository.deleteById(id);
-            return true;
+    public void delete(Long id) {
+        if (!engineerRepository.existsById(id)) {
+            throw new EntityNotFoundException("Engineer not found");
         }
-        return false;
+        engineerRepository.deleteById(id);
     }
-
 }

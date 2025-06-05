@@ -1,49 +1,55 @@
 package com.cernsuite.maintenancetracker.controller;
 
-import com.cernsuite.maintenancetracker.model.Engineer;
+import com.cernsuite.maintenancetracker.dto.EngineerDTO;
 import com.cernsuite.maintenancetracker.service.EngineerService;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/engineers")
+@RequiredArgsConstructor
 public class EngineerController {
 
-    @Autowired
-    private EngineerService engineerService;
+    private final EngineerService engineerService;
 
-    @GetMapping
-    public List<Engineer> getAllEngineers() {
-        return engineerService.getAllEngineers();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Engineer> getEngineerById(@PathVariable Long id) {
-        return engineerService.getEngineerById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
+    @Operation(summary = "Create new Engineer")
     @PostMapping
-    public Engineer createEngineer(@RequestBody Engineer engineer) {
-        return engineerService.createEngineer(engineer);
+    public ResponseEntity<EngineerDTO> create(@Valid @RequestBody EngineerDTO dto) {
+        return ResponseEntity.ok(engineerService.create(dto));
     }
 
+    /*
+    todo : in future consider giving a single feild for updation. ie we pass the engineer id and the feild to update rather than giving the entire enginner dto feilds
+     */
+    @Operation(summary = "Update existing Engineer")
     @PutMapping("/{id}")
-    public ResponseEntity<Engineer> updateEngineer(@PathVariable Long id, @RequestBody Engineer engineerDetails) {
-        return engineerService.updateEngineer(id, engineerDetails)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EngineerDTO> update(@PathVariable Long id, @Valid @RequestBody EngineerDTO dto) {
+        return ResponseEntity.ok(engineerService.update(id, dto));
     }
 
+    @Operation(summary = "Get all Engineers with pagination")
+    @GetMapping
+    public ResponseEntity<Page<EngineerDTO>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(engineerService.getAll(pageable));
+    }
+
+    @Operation(summary = "Get Engineer by ID")
+    @GetMapping("/{id}")
+    public ResponseEntity<EngineerDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(engineerService.getById(id));
+    }
+
+    @Operation(summary = "Delete Engineer by ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEngineer(@PathVariable Long id) {
-        if (engineerService.deleteEngineer(id)) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        engineerService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

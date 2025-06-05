@@ -1,52 +1,47 @@
 package com.cernsuite.maintenancetracker.service;
 
+import com.cernsuite.maintenancetracker.dto.EquipmentDTO;
+import com.cernsuite.maintenancetracker.mapper.EquipmentMapper;
 import com.cernsuite.maintenancetracker.model.Equipment;
 import com.cernsuite.maintenancetracker.repository.EquipmentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-
 @Service
-public class EquipmentService implements EquipmentServiceInterface{
+@RequiredArgsConstructor
+public class EquipmentService {
 
-    @Autowired
-    private EquipmentRepository equipmentRepository;
+    private final EquipmentRepository equipmentRepository;
+    private final EquipmentMapper equipmentMapper;
 
-    public List<Equipment> getAllEquipment() {
-        return equipmentRepository.findAll();
+    public EquipmentDTO create(EquipmentDTO dto) {
+        Equipment equipment = equipmentMapper.toEntity(dto);
+        return equipmentMapper.toDTO(equipmentRepository.save(equipment));
     }
 
-    public Optional<Equipment> getEquipmentById(Long id) {
-        return equipmentRepository.findById(id);
+    public EquipmentDTO update(Long id, EquipmentDTO dto) {
+        Equipment existing = equipmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Equipment not found"));
+        equipmentMapper.updateEntityFromDto(dto, existing);
+        return equipmentMapper.toDTO(equipmentRepository.save(existing));
     }
 
-    public Equipment createEquipment(Equipment equipment) {
-        return equipmentRepository.save(equipment);
+    public Page<EquipmentDTO> getAll(Pageable pageable) {
+        return equipmentRepository.findAll(pageable).map(equipmentMapper::toDTO);
     }
 
-    public Equipment updateEquipment(Long id, Equipment updatedEquipment) {
-        return equipmentRepository.findById(id)
-                .map(existing -> {
-                    existing.setName(updatedEquipment.getName());
-                    existing.setLocation(updatedEquipment.getLocation());
-                    existing.setType(updatedEquipment.getType());
-                    existing.setSerialNumber(updatedEquipment.getSerialNumber());
-                    existing.setInstallationDate(updatedEquipment.getInstallationDate());
-                    existing.setStatus(updatedEquipment.getStatus());
-                    return equipmentRepository.save(existing);
-                })
-                .orElseThrow(() -> new RuntimeException("Equipment not found"));
+    public EquipmentDTO getById(Long id) {
+        Equipment equipment = equipmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Equipment not found"));
+        return equipmentMapper.toDTO(equipment);
     }
 
-    public Boolean deleteEquipment(Long id) {
-        if (equipmentRepository.existsById(id)) {
-            equipmentRepository.deleteById(id);
-            return true;
+    public void delete(Long id) {
+        if (!equipmentRepository.existsById(id)) {
+            throw new EntityNotFoundException("Equipment not found");
         }
-        return false;
+        equipmentRepository.deleteById(id);
     }
-
 }
-
