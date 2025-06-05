@@ -28,14 +28,20 @@ public class EngineerService {
         return engineerMapper.toDTO(engineerRepository.save(existing));
     }
 
-    public Page<EngineerDTO> getAll(Pageable pageable) {
-        return engineerRepository.findAll(pageable).map(engineerMapper::toDTO);
+    public Page<?> getAll(Pageable pageable, boolean includeMaintenanceLogs) {
+        Page<Engineer> engineers = engineerRepository.findAll(pageable);
+        return includeMaintenanceLogs
+                ? engineers.map(engineerMapper::toWithLogsDTO)
+                : engineers.map(engineerMapper::toDTO);
     }
 
-    public EngineerDTO getById(Long id) {
+    public Object getById(Long id, boolean includeLogs) {
         Engineer engineer = engineerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Engineer not found"));
-        return engineerMapper.toDTO(engineer);
+
+        return includeLogs
+                ? engineerMapper.toWithLogsDTO(engineer)
+                : engineerMapper.toDTO(engineer);
     }
 
     public void delete(Long id) {

@@ -33,17 +33,24 @@ public class EngineerController {
 
     @Operation(summary = "Get all Engineers with pagination")
     @GetMapping
-    public ResponseEntity<Page<EngineerDTO>> getAll(
+    public ResponseEntity<Page<?>> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "false") boolean includeMaintenanceLogs
+    ) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(engineerService.getAll(pageable));
+        return ResponseEntity.ok(engineerService.getAll(pageable, includeMaintenanceLogs));
     }
+
 
     @Operation(summary = "Get Engineer by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<EngineerDTO> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(engineerService.getById(id));
+    public ResponseEntity<?> getById(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean includeMaintenanceLogs
+    ) {
+        Object dto = engineerService.getById(id, includeMaintenanceLogs);
+        return ResponseEntity.ok(dto);
     }
 
     @Operation(summary = "Delete Engineer by ID")

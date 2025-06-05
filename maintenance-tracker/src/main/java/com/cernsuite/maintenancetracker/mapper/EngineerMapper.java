@@ -1,6 +1,7 @@
 package com.cernsuite.maintenancetracker.mapper;
 
 import com.cernsuite.maintenancetracker.dto.EngineerDTO;
+import com.cernsuite.maintenancetracker.dto.EngineerWithLogsDTO;
 import com.cernsuite.maintenancetracker.model.Engineer;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -11,7 +12,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface EngineerMapper {
     EngineerDTO toDTO(Engineer engineer);
     Engineer toEntity(EngineerDTO dto);
+
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntityFromDto(EngineerDTO dto, @MappingTarget Engineer entity);
+
+    EngineerWithLogsDTO toWithLogsDTO(Engineer engineer);
 }
 
