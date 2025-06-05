@@ -42,7 +42,6 @@ public class EngineerController {
         return ResponseEntity.ok(engineerService.getAll(pageable, includeMaintenanceLogs));
     }
 
-
     @Operation(summary = "Get Engineer by ID")
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(
