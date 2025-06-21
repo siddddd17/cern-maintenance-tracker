@@ -3,6 +3,7 @@ package com.cernsuite.maintenancetracker.service;
 import com.cernsuite.maintenancetracker.dto.MaintenanceLogDTO;
 import com.cernsuite.maintenancetracker.mapper.MaintenanceLogMapper;
 import com.cernsuite.maintenancetracker.model.*;
+import com.cernsuite.maintenancetracker.model.enums.MaintenanceStatus;
 import com.cernsuite.maintenancetracker.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -62,11 +63,12 @@ public class MaintenanceLogService {
         return maintenanceLogMapper.toDTO(log);
     }
 
+    //todo: soft delete logs by marking the log status as Cancelled or Completed
     public void delete(Long id) {
-        if (!maintenanceLogRepository.existsById(id)) {
-            throw new EntityNotFoundException("MaintenanceLog not found");
-        }
-        maintenanceLogRepository.deleteById(id);
+        MaintenanceLog log = maintenanceLogRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("MaintenanceLog not found"));
+        log.setStatus(MaintenanceStatus.CANCELLED.name());
+        maintenanceLogRepository.save(log);
     }
 
     public List<MaintenanceLogDTO> findByEngineerId(Long engineerId) {

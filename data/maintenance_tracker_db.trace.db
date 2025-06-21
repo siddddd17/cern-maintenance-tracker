@@ -116,3 +116,9 @@ use database maintenance_tracker_db [42000-232]
 2025-05-29 18:57:43.714508+05:30 jdbc[14]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "use database [*]maintenance_tracker_db"; SQL statement:
 use database maintenance_tracker_db [42000-232]
+2025-06-22 01:27:54.790037+05:30 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "MAINETANCE_LOGS" not found; SQL statement:
+select * from mainetance_logs [42102-232]
+2025-06-22 01:27:57.090461+05:30 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "MAINETANCE_LOG" not found; SQL statement:
+select * from mainetance_log [42102-232]
